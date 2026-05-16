@@ -224,9 +224,55 @@
             font-weight: 500;
         }
         #error { color: #f56565; }
+
+        /* --- ПОГОДНЫЕ ОВЕРЛЕИ --- */
+        #weather-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+
+        .effect-rain {
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><line x1="50" y1="0" x2="30" y2="100" stroke="rgba(66,153,225,0.25)" stroke-width="1.2" stroke-linecap="round"/></svg>');
+            background-size: 30px 80px;
+            animation: rainFall 0.4s linear infinite;
+        }
+        @keyframes rainFall {
+            0% { background-position: 0px -80px; }
+            100% { background-position: -30px 0px; }
+        }
+
+        .effect-fog {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            animation: fogPulse 5s infinite alternate ease-in-out;
+        }
+        .dark-theme .effect-fog {
+            background: rgba(26, 32, 44, 0.35);
+        }
+        @keyframes fogPulse {
+            0% { opacity: 0.3; backdrop-filter: blur(1px); -webkit-backdrop-filter: blur(1px); }
+            100% { opacity: 1; backdrop-filter: blur(3.5px); -webkit-backdrop-filter: blur(3.5px); }
+        }
+
+        .effect-wind {
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="50" x2="40" y2="50" stroke="rgba(160,174,192,0.15)" stroke-width="1.5" stroke-linecap="round"/></svg>');
+            background-size: 160px 50px;
+            animation: windBlow 0.4s linear infinite;
+            opacity: 0.7;
+        }
+        @keyframes windBlow {
+            0% { background-position: -160px 0px; }
+            100% { background-position: 100vw 0px; }
+        }
     </style>
 </head>
 <body>
+
+    <div id="weather-overlay"></div>
 
     <div class="header">
         <h1>Ba Na Hills Lookout</h1>
@@ -365,6 +411,7 @@
             const imgContainer = document.getElementById('img-container');
             const iconImg = document.getElementById('weather-icon');
             const badge = document.getElementById('status-badge');
+            const overlay = document.getElementById('weather-overlay');
 
             if (progressContainer) progressContainer.style.display = 'flex';
             imgContainer.className = 'image-container';
@@ -378,6 +425,12 @@
 
                 const currentStatusStrings = t.statuses[data.status] || t.statuses['YELLOW'];
 
+                // Очищаем предыдущие эффекты анимации перед установкой новых
+                if (overlay) {
+                    overlay.className = '';
+                    overlay.style.display = 'none';
+                }
+
                 if (data.status === 'GREEN') {
                     iconImg.src = 'clear.png';
                     badge.className = 'status-badge badge-green';
@@ -390,14 +443,26 @@
                     iconImg.src = 'rain.png';
                     badge.className = 'status-badge badge-rain';
                     imgContainer.classList.add('status-glow-rain');
+                    if (overlay) {
+                        overlay.classList.add('effect-rain');
+                        overlay.style.display = 'block';
+                    }
                 } else if (data.status === 'RED_FOG') {
                     iconImg.src = 'fog.png';
                     badge.className = 'status-badge badge-red';
                     imgContainer.classList.add('status-glow-red');
+                    if (overlay) {
+                        overlay.classList.add('effect-fog');
+                        overlay.style.display = 'block';
+                    }
                 } else if (data.status === 'RED_WIND') {
                     iconImg.src = 'wind.png';
                     badge.className = 'status-badge badge-red';
                     imgContainer.classList.add('status-glow-red');
+                    if (overlay) {
+                        overlay.classList.add('effect-wind');
+                        overlay.style.display = 'block';
+                    }
                 }
 
                 badge.innerText = currentStatusStrings.badge;
@@ -411,11 +476,11 @@
                 let currentVis = data.visibility || 10000;
 
                 if (data.status === 'RED_FOG' && currentVis > 500) {
-                    currentVis = 150; // В тумане режем до 150 метров
+                    currentVis = 150; // Туман: 150 метров
                 } else if (data.status === 'RAIN' && currentVis > 3000) {
-                    currentVis = 2400; // Во время сильного дождя ограничиваем до 2.4 км
+                    currentVis = 2400; // Дождь: 2.4 км
                 } else if (data.status === 'YELLOW' && currentVis > 7000) {
-                    currentVis = 6500; // При плотной облачности/дымке опускаем до 6.5 км
+                    currentVis = 6500; // Облака: 6.5 км
                 }
 
                 const visKmUnit = lang === 'ru' ? 'км' : 'km';
