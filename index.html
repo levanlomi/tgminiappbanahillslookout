@@ -2,355 +2,257 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ba Na Hills Lookout</title>
+    <!-- Подключаем официальный скрипт Telegram Mini Apps -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* Базовые переменные (автоматически берутся из ТГ) */
         :root {
-            --bg-color: #f5f7fa;
-            --container-bg: #ffffff;
-            --text-color: #2d3748;
-            --text-muted: #718096;
-            --border-color: #e2e8f0;
-            --glow-color: rgba(66, 153, 225, 0.4);
+            --bg-color: var(--tg-theme-bg-color, #ffffff);
+            --text-color: var(--tg-theme-text-color, #000000);
+            --hint-color: var(--tg-theme-hint-color, #707579);
+            --card-bg: rgba(0, 0, 0, 0.03); 
         }
 
-        .dark-theme {
-            --bg-color: #1a202c;
-            --container-bg: #2d3748;
-            --text-color: #f7fafc;
-            --text-muted: #a0aec0;
-            --border-color: #4a5568;
-            --glow-color: rgba(66, 153, 225, 0.6);
+        /* Принудительная ТЕМНАЯ тема */
+        body.theme-dark {
+            --bg-color: #17212b;
+            --text-color: #f5f5f5;
+            --hint-color: #708499;
+            --card-bg: rgba(255, 255, 255, 0.08);
         }
 
-        /* Цветовые схемы для неонового свечения */
-        .status-glow-green { --glow-color: rgba(72, 187, 120, 0.7); }
-        .status-glow-yellow { --glow-color: rgba(236, 201, 75, 0.7); }
-        .status-glow-rain { --glow-color: rgba(66, 153, 225, 0.7); }
-        .status-glow-red { --glow-color: rgba(245, 101, 101, 0.8); }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        /* Принудительная СВЕТЛАЯ тема */
+        body.theme-light {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --hint-color: #707579;
+            --card-bg: rgba(0, 0, 0, 0.03);
         }
 
         body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
+            margin: 0;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 16px;
-            min-height: 100vh;
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Шапка с прозрачной кнопкой-луной */
         .header {
             width: 100%;
             max-width: 400px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding: 0 4px;
+            margin-bottom: 16px;
         }
 
-        .header h1 {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .theme-toggle {
-            background: none;
-            border: none;
+        .header-titles h1 {
             font-size: 22px;
-            cursor: pointer;
-            opacity: 0.6;
-            transition: opacity 0.2s, transform 0.2s;
-            padding: 8px;
+            margin: 0 0 4px 0;
+        }
+
+        .updated-at {
+            font-size: 12px;
+            color: var(--hint-color);
+        }
+
+        .theme-toggle-btn {
+            background: var(--card-bg);
+            border: none;
             border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
         }
 
-        .theme-toggle:active {
-            transform: scale(0.9);
-            opacity: 1;
-        }
-
-        /* Главная карточка */
-        .card {
-            background-color: var(--container-bg);
-            border-radius: 24px;
-            padding: 24px;
+        .status-card {
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-            border: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            border-radius: 16px;
+            padding: 20px;
             text-align: center;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-
-        /* Контейнер картинки с эффектом неонового свечения */
-        .image-container {
-            width: 160px;
-            height: 160px;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease;
             margin-bottom: 20px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        .weather-img {
-            width: 140px;
-            height: 140px;
-            object-fit: contain;
-            z-index: 2;
-        }
-
-        /* Тот самый светящийся ореол вокруг картинки */
-        .image-glow {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: var(--glow-color);
-            filter: blur(25px);
-            opacity: 0.8;
-            z-index: 1;
-            transition: background 0.5s ease, filter 0.5s ease;
-            animation: pulseGlow 3s infinite alternate;
-        }
-
-        @keyframes pulseGlow {
-            0% { transform: scale(0.95); opacity: 0.7; }
-            100% { transform: scale(1.05); opacity: 0.9; filter: blur(30px); }
-        }
-
-        /* Текстовые блоки */
-        .status-badge {
-            font-size: 14px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-            padding: 6px 16px;
-            border-radius: 100px;
-        }
-
-        /* Тонкие рамки для статусов вместо заливки всего фона */
-        .badge-green { background: rgba(72, 187, 120, 0.15); color: #48bb78; }
-        .badge-yellow { background: rgba(236, 201, 75, 0.15); color: #ecc94b; }
-        .badge-rain { background: rgba(66, 153, 225, 0.15); color: #4299e1; }
-        .badge-red { background: rgba(245, 101, 101, 0.15); color: #f56565; }
-
-        .recommendation {
-            font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 24px;
-            font-weight: 500;
-        }
-
-        /* Сетка метрик внизу карточки */
-        .metrics-grid {
+        .status-image {
             width: 100%;
+            max-width: 250px;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .status-text {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.4;
+            color: #000000; 
+        }
+
+        .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(3, 100px);
-            gap: 12px;
-            justify-content: center;
-            border-top: 1px solid var(--border-color);
-            padding-top: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
         }
 
         .metric-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .metric-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .metric-value {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .footer-text {
-            margin-top: 16px;
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        /* Лоадер и Ошибки */
-        #loading, #error {
-            max-width: 400px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px 8px;
             text-align: center;
-            margin-top: 40px;
-            font-weight: 500;
+            transition: background-color 0.3s;
         }
-        #error { color: #f56565; }
+
+        .metric-icon { font-size: 20px; margin-bottom: 4px; }
+        .metric-value { font-size: 16px; font-weight: bold; }
+        .metric-label { font-size: 11px; color: var(--hint-color); margin-top: 2px; }
+
+        /* Цветовые темы для статусов (баннер) */
+        .bg-green { background-color: #E8F5E9; }
+        .bg-yellow { background-color: #FFFDE7; }
+        .bg-red { background-color: #FFEBEE; }
+        .bg-blue { background-color: #E3F2FD; } /* НОВЫЙ ЦВЕТ ДЛЯ ДОЖДЯ */
+        
+        .loader { font-size: 16px; color: var(--hint-color); margin-top: 50px; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>Bana Hills Lookout</h1>
-        <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">🌙</button>
-    </div>
+    <div id="loader" class="loader">Получаем данные о погоде на вершине...</div>
 
-    <div id="loading">Загрузка данных о погоде на вершине...</div>
-    <div id="error" style="display: none;">Ошибка загрузки данных. Попробуйте позже.</div>
-
-    <div id="app-content" class="card" style="display: none;">
-        <div class="image-container" id="img-container">
-            <div class="image-glow" id="glow-layer"></div>
-            <img id="weather-icon" src="clear.png" alt="Weather Status" class="weather-img">
+    <div id="app-content" style="display: none; width: 100%; max-width: 400px;">
+        
+        <div class="header">
+            <div class="header-titles">
+                <h1>Ba Na Hills</h1>
+                <div class="updated-at" id="updated-time">Обновлено: только что</div>
+            </div>
+            <button id="theme-toggle" class="theme-toggle-btn">🌓</button>
         </div>
 
-        <div id="status-badge" class="status-badge">GREEN</div>
-        <div id="recommendation" class="recommendation">...</div>
+        <div class="status-card" id="status-card">
+            <img src="" alt="Weather Status" class="status-image" id="status-img">
+            <div class="status-text" id="recommendation-text">...</div>
+        </div>
 
         <div class="metrics-grid">
             <div class="metric-item">
-                <span class="metric-label">Темп.</span>
-                <span id="temp-val" class="metric-value">--</span>
+                <div class="metric-icon">👁</div>
+                <div class="metric-value" id="val-vis">--</div>
+                <div class="metric-label">Видимость</div>
             </div>
             <div class="metric-item">
-                <span class="metric-label">Ветер</span>
-                <span id="wind-val" class="metric-value">--</span>
+                <div class="metric-icon">💨</div>
+                <div class="metric-value" id="val-wind">--</div>
+                <div class="metric-label">Ветер</div>
             </div>
             <div class="metric-item">
-                <span class="metric-label">Облака</span>
-                <span id="cloud-val" class="metric-value">--</span>
+                <div class="metric-icon">🌡</div>
+                <div class="metric-value" id="val-temp">--</div>
+                <div class="metric-label">На горе</div>
             </div>
-        </div>
-
-        <div class="footer-text">
-            Обновлено: <span id="update-time">--:--</span>
         </div>
     </div>
 
     <script>
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.expand();
-            tg.ready();
-        }
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); 
 
-        // Укажи здесь свою ссылку на бэкенд на Render
+        // Замени на свой URL после деплоя
         const BACKEND_URL = 'https://bana-backend.onrender.com/api/bana-status';
 
-        function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const themeBtn = document.getElementById('theme-btn');
-            
-            if (savedTheme === 'dark' || (!savedTheme && tg?.colorScheme === 'dark')) {
-                document.body.classList.add('dark-theme');
+        // --- ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ТЕМЫ ---
+        const themeBtn = document.getElementById('theme-toggle');
+        let isDark = tg.colorScheme === 'dark';
+
+        function applyTheme() {
+            if (isDark) {
+                document.body.classList.add('theme-dark');
+                document.body.classList.remove('theme-light');
                 themeBtn.innerText = '☀️';
             } else {
+                document.body.classList.add('theme-light');
+                document.body.classList.remove('theme-dark');
                 themeBtn.innerText = '🌙';
             }
         }
 
-        function toggleTheme() {
-            const btn = document.getElementById('theme-btn');
-            if (document.body.classList.contains('dark-theme')) {
-                document.body.classList.remove('dark-theme');
-                btn.innerText = '🌙';
-                localStorage.setItem('theme', 'light');
-            } else {
-                document.body.classList.add('dark-theme');
-                btn.innerText = '☀️';
-                localStorage.setItem('theme', 'dark');
-            }
-        }
+        applyTheme();
+
+        themeBtn.addEventListener('click', () => {
+            isDark = !isDark;
+            applyTheme();
+        });
+        // --------------------------------
 
         async function fetchBanaStatus() {
             try {
                 const response = await fetch(BACKEND_URL);
-                if (!response.ok) throw new Error('Ошибка сервера');
-                
                 const result = await response.json();
                 const data = result.data;
 
-                // Элементы интерфейса
-                const contentBlock = document.getElementById('app-content');
-                const loadingBlock = document.getElementById('loading');
-                const glowLayer = document.getElementById('glow-layer');
-                const imgContainer = document.getElementById('img-container');
-                const iconImg = document.getElementById('weather-icon');
-                const badge = document.getElementById('status-badge');
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
 
-                // Сбрасываем старые классы свечения
-                imgContainer.className = 'image-container';
+                document.getElementById('val-temp').innerText = `${data.temp}°C`;
+                document.getElementById('val-wind').innerText = `${Math.round(data.wind)} м/с`;
+                
+                const visKm = data.visibility >= 1000 ? `${(data.visibility / 1000).toFixed(1)} км` : `${data.visibility} м`;
+                document.getElementById('val-vis').innerText = visKm;
 
-                // Настройка логики под новые эффекты
+                const card = document.getElementById('status-card');
+                const img = document.getElementById('status-img');
+                const text = document.getElementById('recommendation-text');
+
+                text.innerText = data.recommendation;
+
+                // --- НОВАЯ ЛОГИКА С ДОЖДЕМ ---
                 if (data.status === 'GREEN') {
-                    iconImg.src = 'clear.png';
-                    badge.className = 'status-badge badge-green';
-                    imgContainer.classList.add('status-glow-green');
-                    badge.innerText = 'ОТЛИЧНО';
+                    card.className = 'status-card bg-green';
+                    img.src = 'clear.png';
                 } else if (data.status === 'YELLOW') {
-                    iconImg.src = 'cloudy.png';
-                    badge.className = 'status-badge badge-yellow';
-                    imgContainer.classList.add('status-glow-yellow');
-                    badge.innerText = 'ВНИМАНИЕ';
+                    card.className = 'status-card bg-yellow';
+                    img.src = 'cloudy.png';
                 } else if (data.status === 'RAIN') {
-                    iconImg.src = 'rain.png';
-                    badge.className = 'status-badge badge-rain';
-                    imgContainer.classList.add('status-glow-rain');
-                    badge.innerText = 'ДОЖДЬ';
-                } else if (data.status === 'RED_FOG') {
-                    iconImg.src = 'fog.png';
-                    badge.className = 'status-badge badge-red';
-                    imgContainer.classList.add('status-glow-red');
-                    badge.innerText = 'ТУМАН';
+                    card.className = 'status-card bg-blue';
+                    img.src = 'rain.png';
                 } else if (data.status === 'RED_WIND') {
-                    iconImg.src = 'wind.png';
-                    badge.className = 'status-badge badge-red';
-                    imgContainer.classList.add('status-glow-red');
-                    badge.innerText = 'ВЕТЕР';
+                    card.className = 'status-card bg-red';
+                    img.src = 'wind.png';
+                } else { 
+                    card.className = 'status-card bg-red';
+                    img.src = 'fog.png';
                 }
 
-                // Заполнение текстовых данных
-                document.getElementById('recommendation').innerText = data.recommendation;
-                document.getElementById('temp-val').innerText = `${data.temp}°C`;
-                document.getElementById('wind-val').innerText = `${Math.round(data.wind)} м/с`;
-                
-                // Так как у нас эмуляция видимости в 2.5, выведем лучше условную облачность или оставим прочерк
-                document.getElementById('cloud-val').innerText = data.status === 'GREEN' ? 'Ясно' : 'Плотные';
-
-                // Время обновления
                 const date = new Date(data.updatedAt);
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                document.getElementById('update-time').innerText = `${hours}:${minutes}`;
+                document.getElementById('updated-time').innerText = `Обновлено в ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
 
-                // Показываем контент
-                loadingBlock.style.display = 'none';
-                contentBlock.style.display = 'flex';
+                tg.MainButton.setText("Закрыть").show().onClick(() => {
+                    tg.close();
+                });
 
-            } catch (err) {
-                console.error(err);
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
+            } catch (error) {
+                document.getElementById('loader').innerText = 'Ошибка загрузки данных. Попробуйте позже.';
+                console.error(error);
             }
         }
 
-        // Старт
-        initTheme();
         fetchBanaStatus();
     </script>
 </body>
