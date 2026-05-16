@@ -2,9 +2,12 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ba Na Hills Lookout</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bana Hills Lookout & Currency Converter</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
     <style>
         :root {
             --bg-color: #f5f7fa;
@@ -13,102 +16,45 @@
             --text-muted: #718096;
             --border-color: #e2e8f0;
             --glow-color: rgba(66, 153, 225, 0.4);
+            --tg-theme-bg-color: #f5f7fa;
+            --tg-theme-text-color: #2d3748;
+            --tg-theme-secondary-bg-color: #ffffff;
+            --tg-theme-hint-color: #718096;
+            --tg-theme-button-color: #3b82f6;
         }
 
-        .dark-theme {
+        /* ПРИНУДИТЕЛЬНАЯ ТЕМНАЯ ТЕМА */
+        .theme-dark {
             --bg-color: #1a202c;
             --container-bg: #2d3748;
             --text-color: #f7fafc;
             --text-muted: #a0aec0;
             --border-color: #4a5568;
             --glow-color: rgba(66, 153, 225, 0.6);
-        }
-
-        .status-glow-green { --glow-color: rgba(72, 187, 120, 0.7); }
-        .status-glow-yellow { --glow-color: rgba(236, 201, 75, 0.7); }
-        .status-glow-rain { --glow-color: rgba(66, 153, 225, 0.7); }
-        .status-glow-red { --glow-color: rgba(245, 101, 101, 0.8); }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --tg-theme-bg-color: #1a202c;
+            --tg-theme-text-color: #f7fafc;
+            --tg-theme-secondary-bg-color: #2d3748;
+            --tg-theme-hint-color: #a0aec0;
+            --tg-theme-button-color: #3b82f6;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 16px;
-            min-height: 100vh;
-            transition: background-color 0.3s, color 0.3s;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        .header {
-            width: 100%;
-            max-width: 400px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 0 4px;
-        }
-
-        .header h1 {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .theme-toggle {
-            background: none;
-            border: none;
-            font-size: 22px;
-            cursor: pointer;
-            opacity: 0.6;
-            transition: opacity 0.2s, transform 0.2s;
-            padding: 8px;
-            border-radius: 50%;
-        }
-
-        .theme-toggle:active {
-            transform: scale(0.9);
-            opacity: 1;
-        }
-
-        .card {
+        .vnds-card {
             background-color: var(--container-bg);
-            border-radius: 24px;
-            padding: 24px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
             border: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            transition: background-color 0.3s, border-color 0.3s;
         }
 
-        .image-container {
-            width: 160px;
-            height: 160px;
-            margin-bottom: 20px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .weather-img {
-            width: 140px;
-            height: 140px;
-            object-fit: contain;
-            z-index: 2;
-        }
+        /* Цветовые схемы для neoнового свечения */
+        .status-glow-green { --glow-color: rgba(72, 187, 120, 0.7); }
+        .status-glow-yellow { --glow-color: rgba(236, 201, 75, 0.7); }
+        .status-glow-rain { --glow-color: rgba(66, 153, 225, 0.7); }
+        .status-glow-red { --glow-color: rgba(245, 101, 101, 0.8); }
 
         .image-glow {
             position: absolute;
@@ -133,7 +79,6 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 12px;
             padding: 6px 16px;
             border-radius: 100px;
         }
@@ -143,100 +88,145 @@
         .badge-rain { background: rgba(66, 153, 225, 0.15); color: #4299e1; }
         .badge-red { background: rgba(245, 101, 101, 0.15); color: #f56565; }
 
-        .recommendation {
-            font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 24px;
-            font-weight: 500;
+        .currency-btn {
+            font-size: 2rem;
+            line-height: 1;
+            padding: 0.5rem 0.6rem;
+            border-radius: 1rem;
+            border: 2px solid transparent;
+            background: var(--container-bg);
+            border-color: var(--border-color);
+            transition: all 0.15s ease;
         }
-
-        .metrics-grid {
-            width: 100%;
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            gap: 12px;
-            justify-content: center;
-            border-top: 1px solid var(--border-color);
-            padding-top: 20px;
+        .currency-btn.active {
+            border-color: var(--tg-theme-button-color, #3b82f6);
+            background: rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
         }
-
-        .metric-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .zero-btn {
+            background-color: var(--tg-theme-button-color, #3b82f6);
+            color: #ffffff;
+            border: none;
         }
-
-        .metric-icon {
-            font-size: 20px;
-            margin-bottom: 6px;
+        .zero-btn:active {
+            opacity: 0.8;
+            transform: scale(0.98);
         }
-
-        .metric-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 2px;
+        .clear-btn {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
         }
-
-        .metric-value {
-            font-size: 16px;
-            font-weight: bold;
+        .clear-btn:active {
+            background-color: rgba(239, 68, 68, 0.2);
+            transform: scale(0.98);
         }
-
-        .footer-text {
-            margin-top: 20px;
-            font-size: 11px;
-            color: var(--text-muted);
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
-
-        #loading, #error {
-            max-width: 400px;
-            text-align: center;
-            margin-top: 40px;
-            font-weight: 500;
+        .custom-input {
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
         }
-        #error { color: #f56565; }
+        .custom-input:focus {
+            border-bottom-color: var(--tg-theme-button-color, #3b82f6);
+            outline: none;
+        }
+        
+        .theme-toggle-btn {
+            color: var(--text-color);
+            opacity: 0.6;
+            transition: all 0.2s ease;
+        }
+        .theme-toggle-btn:active {
+            transform: scale(0.9);
+            opacity: 1;
+        }
     </style>
 </head>
-<body>
-
-    <div class="header">
-        <h1>Ba Na Hills Lookout</h1>
-        <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">🌙</button>
-    </div>
-
-    <div id="loading">Загрузка... / Loading...</div>
-    <div id="error" style="display: none;">Ошибка / Error</div>
-
-    <div id="app-content" class="card" style="display: none;">
-        <div class="image-container" id="img-container">
-            <div class="image-glow" id="glow-layer"></div>
-            <img id="weather-icon" src="clear.png" alt="Weather Status" class="weather-img">
+<body class="p-4 min-h-vh flex flex-col items-center">
+    <div class="w-full max-w-md mx-auto">
+        
+        <div class="relative flex justify-between items-center mb-6 px-1">
+            <h1 id="app-title" class="text-xl font-bold">Travel Hub</h1>
+            <button onclick="toggleTheme()" class="theme-toggle-btn p-2 text-2xl" id="theme-btn">🌙</button>
         </div>
 
-        <div id="status-badge" class="status-badge">--</div>
-        <div id="recommendation" class="recommendation">--</div>
+        <div id="loading" class="text-center py-8 font-medium">Загрузка... / Loading...</div>
+        <div id="error" class="text-center py-8 text-red-500 font-medium" style="display: none;">Ошибка / Error</div>
 
-        <div class="metrics-grid">
-            <div class="metric-item">
-                <div class="metric-icon">👁</div>
-                <div class="metric-value" id="vis-val">--</div>
-                <div class="metric-label" id="label-vis">Видимость</div>
+        <div id="bana-screen" class="vnds-card rounded-3xl p-6 shadow-xl flex flex-col items-center text-center transition-all hidden">
+            <div class="w-[160px] height-[160px] h-[160px] relative flex items-center justify-center mb-4" id="img-container">
+                <div class="image-glow" id="glow-layer"></div>
+                <img id="weather-icon" src="clear.png" alt="Weather Status" class="w-[140px] h-[140px] object-contain z-10">
             </div>
-            <div class="metric-item">
-                <div class="metric-icon">💨</div>
-                <div class="metric-value" id="wind-val">--</div>
-                <div class="metric-label" id="label-wind">Ветер</div>
+
+            <div id="status-badge" class="status-badge mb-3">--</div>
+
+            <div id="bana-progress-container" class="w-full max-w-[140px] mx-auto mb-4 hidden">
+                <div class="w-full bg-gray-200 dark:bg-gray-700 h-1 rounded-full overflow-hidden">
+                    <div class="bg-blue-500 h-full rounded-full animate-pulse w-full"></div>
+                </div>
+                <span id="label-loading-data" class="text-[9px] opacity-40 uppercase tracking-widest block mt-1">Updating...</span>
             </div>
-            <div class="metric-item">
-                <div class="metric-icon">🌡</div>
-                <div class="metric-value" id="temp-val">--</div>
-                <div class="metric-label" id="label-temp">На горе</div>
+
+            <div id="recommendation" class="text-base font-medium mb-6 leading-relaxed">--</div>
+
+            <div class="w-full grid grid-columns-3 grid-cols-3 gap-3 justify-center border-t border-gray-200 dark:border-gray-700 pt-5">
+                <div class="flex flex-col items-center">
+                    <div class="text-xl mb-1">👁</div>
+                    <div class="text-base font-bold" id="vis-val">--</div>
+                    <div class="text-[11px] uppercase tracking-wider opacity-60 mt-1" id="label-vis">Видимость</div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="text-xl mb-1">💨</div>
+                    <div class="text-base font-bold" id="wind-val">--</div>
+                    <div class="text-[11px] uppercase tracking-wider opacity-60 mt-1" id="label-wind">Ветер</div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="text-xl mb-1">🌡</div>
+                    <div class="text-base font-bold" id="temp-val">--</div>
+                    <div class="text-[11px] uppercase tracking-wider opacity-60 mt-1" id="label-temp">На горе</div>
+                </div>
+            </div>
+
+            <div class="mt-5 text-[11px] opacity-50 font-medium">
+                <span id="label-update">Обновлено:</span> <span id="update-time">--:--</span>
             </div>
         </div>
 
-        <div class="footer-text">
-            <span id="label-update">Обновлено:</span> <span id="update-time">--:--</span>
+        <div id="converter-screen" class="transition-all hidden">
+            <div class="flex justify-center gap-3 mb-6" id="baseSelector">
+                <button onclick="switchCurrency('RUB')" id="btn-RUB" class="currency-btn active">🇷🇺</button>
+                <button onclick="switchCurrency('USD')" id="btn-USD" class="currency-btn">🇺🇸</button>
+                <button onclick="switchCurrency('VND')" id="btn-VND" class="currency-btn">🇻🇳</button>
+                <button onclick="switchCurrency('CNY')" id="btn-CNY" class="currency-btn">🇨🇳</button>
+            </div>
+
+            <div class="vnds-card p-5 rounded-2xl mb-6 shadow-xl transition-all">
+                <label id="inputLabel" class="block text-xs font-medium uppercase tracking-wider mb-2 opacity-50">Сумма (В рублях)</label>
+                <input type="text" id="amountInput" inputmode="numeric" placeholder="0" 
+                    class="w-full bg-transparent text-4xl font-bold custom-input transition-colors rounded-none pb-1">
+                
+                <div class="flex gap-2 mt-6">
+                    <button type="button" onclick="addZeros('000')" class="zero-btn flex-1 py-3 rounded-xl text-sm font-semibold transition-all">,000</button>
+                    <button type="button" onclick="addZeros('000000')" class="zero-btn flex-1 py-3 rounded-xl text-sm font-semibold transition-all">,000,000</button>
+                </div>
+            </div>
+
+            <div id="results" class="space-y-4"></div>
+
+            <div id="lastUpdate" class="mt-6 text-center text-[10px] opacity-40 font-medium uppercase tracking-widest">
+                Обновление данных...
+            </div>
+
+            <button onclick="clearAll()" class="clear-btn w-full mt-5 py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all">
+                Очистить всё / Clear All
+            </button>
         </div>
+
     </div>
 
     <script>
@@ -246,15 +236,36 @@
             tg.ready();
         }
 
-        // --- БЛОК ЛОКАЛИЗАЦИИ (СЛОВАРЬ) ---
+        const BACKEND_URL = 'https://bana-backend.onrender.com/api/bana-status';
+        const amountInput = document.getElementById('amountInput');
+        const resultsEl = document.getElementById('results');
+        const lastUpdateEl = document.getElementById('lastUpdate');
+        
+        let baseCurrency = 'RUB';
+        let rates = { RUB: 1, USD: 0, VND: 0, CNY: 0 };
+        const CONVERTER_API_KEY = '6f1d27cd1bdd8ad495997f7f'; 
+
+        const CURRENCIES = {
+            RUB: { label: 'В рублях', labelEn: 'In Rubles', flag: '🇷🇺', color: 'text-blue-500' },
+            USD: { label: 'В долларах', labelEn: 'In Dollars', flag: '🇺🇸', color: 'text-green-500' },
+            VND: { label: 'В донгах', labelEn: 'In Dong', flag: '🇻🇳', color: 'text-yellow-500' },
+            CNY: { label: 'В юанях', labelEn: 'In Yuan', flag: '🇨🇳', color: 'text-red-500' }
+        };
+
+        const DISPLAY_ORDER = ['RUB', 'USD', 'VND', 'CNY'];
+
+        // --- БЛОК МУЛЬТИЯЗЫЧНОСТИ ДЛЯ ПОГОДЫ ---
         const translations = {
             ru: {
+                titleBana: "Bana Hills Lookout",
+                titleConv: "Калькулятор валют",
                 loading: "Загрузка данных о погоде на вершине...",
                 error: "Ошибка загрузки данных. Попробуйте позже.",
                 visLabel: "Видимость",
                 windLabel: "Ветер",
                 tempLabel: "На горе",
                 updateLabel: "Обновлено:",
+                updatingBar: "Синхронизация...",
                 statuses: {
                     'GREEN': { badge: 'ОТЛИЧНО', text: 'Отличное время для поездки! Небо чистое, бери камеру.' },
                     'YELLOW': { badge: 'ВНИМАНИЕ', text: 'Плотная облачность. Вершина может быть в дымке, виды частично ограничены.' },
@@ -264,12 +275,15 @@
                 }
             },
             en: {
+                titleBana: "Ba Na Hills Lookout",
+                titleConv: "Currency Converter",
                 loading: "Loading mountain weather data...",
                 error: "Error loading data. Please try again later.",
                 visLabel: "Visibility",
                 windLabel: "Wind",
                 tempLabel: "Mountain",
                 updateLabel: "Updated at:",
+                updatingBar: "Updating...",
                 statuses: {
                     'GREEN': { badge: 'CLEAR', text: 'Perfect time to visit! The sky is clear, grab your camera.' },
                     'YELLOW': { badge: 'WARNING', text: 'Cloudy. The peak might be hazy, views are partially limited.' },
@@ -280,68 +294,99 @@
             }
         };
 
-        // Определяем язык пользователя (по умолчанию английский, если язык не 'ru')
-        // Пытаемся взять язык ТГ -> если пусто, берем язык браузера -> если пусто, ставим 'en'
         const tgLang = tg?.initDataUnsafe?.user?.language_code;
         const browserLang = window.navigator.language || window.navigator.userLanguage;
         const userLangCode = tgLang || browserLang || 'en';
-
-        // Приводим к нижнему регистру и проверяем, есть ли там "ru"
         const lang = userLangCode.toLowerCase().startsWith('ru') ? 'ru' : 'en';
         const t = translations[lang];
 
-        // Применяем статические переводы при загрузке
-        document.getElementById('loading').innerText = t.loading;
-        document.getElementById('error').innerText = t.error;
-        document.getElementById('label-vis').innerText = t.visLabel;
-        document.getElementById('label-wind').innerText = t.windLabel;
-        document.getElementById('label-temp').innerText = t.tempLabel;
-        document.getElementById('label-update').innerText = t.updateLabel;
-
-        const BACKEND_URL = 'https://bana-backend.onrender.com/api/bana-status';
-
+        // --- УПРАВЛЕНИЕ ТЕМОЙ ---
         function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
+            const savedTheme = localStorage.getItem('app-theme') || (tg?.colorScheme === 'dark' ? 'dark' : 'light');
             const themeBtn = document.getElementById('theme-btn');
             
-            if (savedTheme === 'dark' || (!savedTheme && tg?.colorScheme === 'dark')) {
-                document.body.classList.add('dark-theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('theme-dark');
                 themeBtn.innerText = '☀️';
             } else {
+                document.body.classList.remove('theme-dark');
                 themeBtn.innerText = '🌙';
             }
         }
 
         function toggleTheme() {
-            const btn = document.getElementById('theme-btn');
-            if (document.body.classList.contains('dark-theme')) {
-                document.body.classList.remove('dark-theme');
-                btn.innerText = '🌙';
-                localStorage.setItem('theme', 'light');
+            const themeBtn = document.getElementById('theme-btn');
+            if (document.body.classList.contains('theme-dark')) {
+                document.body.classList.remove('theme-dark');
+                themeBtn.innerText = '🌙';
+                localStorage.setItem('app-theme', 'light');
             } else {
-                document.body.classList.add('dark-theme');
-                btn.innerText = '☀️';
-                localStorage.setItem('theme', 'dark');
+                document.body.classList.add('theme-dark');
+                themeBtn.innerText = '☀️';
+                localStorage.setItem('app-theme', 'dark');
+            }
+            convert();
+        }
+
+        // --- МАРШРУТИЗАЦИЯ ЭКРАНОВ (РОУТЕР) ---
+        function routeScreens() {
+            const hash = window.location.hash;
+            const banaScreen = document.getElementById('bana-screen');
+            const converterScreen = document.getElementById('converter-screen');
+            const loadingBlock = document.getElementById('loading');
+            const errorBlock = document.getElementById('error');
+            const titleEl = document.getElementById('app-title');
+
+            banaScreen.classList.add('hidden');
+            converterScreen.classList.add('hidden');
+            errorBlock.style.display = 'none';
+
+            if (hash === '#bana') {
+                titleEl.innerText = t.titleBana;
+                loadingBlock.innerText = t.loading;
+                loadingBlock.style.display = 'block';
+                
+                document.getElementById('label-vis').innerText = t.visLabel;
+                document.getElementById('label-wind').innerText = t.windLabel;
+                document.getElementById('label-temp').innerText = t.tempLabel;
+                document.getElementById('label-update').innerText = t.updateLabel;
+                document.getElementById('label-loading-data').innerText = t.updatingBar;
+
+                fetchBanaStatus();
+            } else {
+                titleEl.innerText = lang === 'ru' ? translations.ru.titleConv : translations.en.titleConv;
+                loadingBlock.style.display = 'none';
+                converterScreen.classList.remove('hidden');
+                
+                initCards();
+                fetchRates(baseCurrency);
             }
         }
 
+        // --- ЛОГИКА ЭКРАНА ПОГОДЫ ---
         async function fetchBanaStatus() {
+            const contentBlock = document.getElementById('bana-screen');
+            const loadingBlock = document.getElementById('loading');
+            const imgContainer = document.getElementById('img-container');
+            const iconImg = document.getElementById('weather-icon');
+            const badge = document.getElementById('status-badge');
+            const progressContainer = document.getElementById('bana-progress-container');
+
+            // ТРЮК: Отрисовываем пустой каркас экрана мгновенно
+            loadingBlock.style.display = 'none';
+            contentBlock.classList.remove('hidden');
+            imgContainer.className = 'w-[160px] height-[160px] h-[160px] relative flex items-center justify-center mb-4';
+
+            // Показываем анимированную полоску загрузки
+            if (progressContainer) progressContainer.classList.remove('hidden');
+
             try {
                 const response = await fetch(BACKEND_URL);
-                if (!response.ok) throw new Error('Ошибка сервера');
+                if (!response.ok) throw new Error('Weather API error');
                 
                 const result = await response.json();
                 const data = result.data;
 
-                const contentBlock = document.getElementById('app-content');
-                const loadingBlock = document.getElementById('loading');
-                const imgContainer = document.getElementById('img-container');
-                const iconImg = document.getElementById('weather-icon');
-                const badge = document.getElementById('status-badge');
-
-                imgContainer.className = 'image-container';
-
-                // Достаем переводы статуса из словаря
                 const currentStatusStrings = t.statuses[data.status] || t.statuses['YELLOW'];
 
                 if (data.status === 'GREEN') {
@@ -366,13 +411,11 @@
                     imgContainer.classList.add('status-glow-red');
                 }
 
-                // Применяем переведенный текст
+                // Заполняем свежие данные в готовый интерфейс
                 badge.innerText = currentStatusStrings.badge;
                 document.getElementById('recommendation').innerText = currentStatusStrings.text;
-
                 document.getElementById('temp-val').innerText = `${data.temp}°C`;
                 
-                // В английском метры в секунду обычно обозначают как m/s, в русском - м/с
                 const windUnit = lang === 'ru' ? 'м/с' : 'm/s';
                 document.getElementById('wind-val').innerText = `${Math.round(data.wind)} ${windUnit}`;
                 
@@ -381,7 +424,6 @@
                 const visKm = data.visibility >= 1000 
                     ? `${(data.visibility / 1000).toFixed(1)} ${visKmUnit}` 
                     : `${data.visibility} ${visMUnit}`;
-                
                 document.getElementById('vis-val').innerText = visKm;
 
                 const date = new Date(data.updatedAt);
@@ -389,18 +431,159 @@
                 const minutes = String(date.getMinutes()).padStart(2, '0');
                 document.getElementById('update-time').innerText = `${hours}:${minutes}`;
 
-                loadingBlock.style.display = 'none';
-                contentBlock.style.display = 'flex';
+                // Прячем прогресс-бар, данные на месте!
+                if (progressContainer) progressContainer.classList.add('hidden');
 
             } catch (err) {
                 console.error(err);
-                document.getElementById('loading').style.display = 'none';
+                // В случае критической ошибки прячем прогресс-бар и закрываем каркас
+                if (progressContainer) progressContainer.classList.add('hidden');
+                contentBlock.classList.add('hidden');
+                document.getElementById('error').innerText = t.error;
                 document.getElementById('error').style.display = 'block';
             }
         }
 
+        // --- ЛОГИКА ЭКРАНА КОНВЕРТЕРА ВАЛЮТ ---
+        async function fetchRates(base = 'RUB') {
+            try {
+                const response = await fetch(`https://v6.exchangerate-api.com/v6/${CONVERTER_API_KEY}/latest/${base}`);
+                const data = await response.json();
+                
+                if (data.result === "success") {
+                    rates = data.conversion_rates;
+                    
+                    const now = new Date();
+                    const dateStr = now.toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US');
+                    const timeStr = now.toLocaleTimeString(lang === 'ru' ? 'ru-RU' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+                    const updateText = lang === 'ru' ? `Курс обновлен: ${dateStr} в ${timeStr}` : `Rates updated: ${dateStr} at ${timeStr}`;
+                    
+                    lastUpdateEl.textContent = updateText;
+                    
+                    localStorage.setItem(`rates_${base}`, JSON.stringify(rates));
+                    localStorage.setItem(`update_${base}`, updateText);
+                    convert();
+                }
+            } catch (e) { 
+                console.error("Offline fallback:", e);
+                const cachedRates = localStorage.getItem(`rates_${base}`);
+                const cachedUpdateText = localStorage.getItem(`update_${base}`);
+                
+                if (cachedRates) {
+                    rates = JSON.parse(cachedRates);
+                    lastUpdateEl.textContent = `${cachedUpdateText} ${lang === 'ru' ? '(Офлайн ✈️)' : '(Offline ✈️)'}`;
+                    convert();
+                } else {
+                    lastUpdateEl.textContent = lang === 'ru' ? "Нет сети и сохраненных данных 😔" : "No network connection 😔";
+                }
+            }
+        }
+
+        function formatNumber(num, fractionDigits = 0) {
+            return new Intl.NumberFormat('en-US', { 
+                maximumFractionDigits: fractionDigits,
+                minimumFractionDigits: 0
+            }).format(num);
+        }
+
+        function getRawValue() {
+            return amountInput.value.replace(/,/g, '');
+        }
+
+        function formatAmountInput() {
+            let value = getRawValue();
+            if (value === '') {
+                convert();
+                return;
+            }
+            const num = parseFloat(value);
+            if (!isNaN(num)) {
+                amountInput.value = formatNumber(num);
+                convert();
+            }
+        }
+
+        function initCards() {
+            resultsEl.innerHTML = '';
+            DISPLAY_ORDER.forEach(code => {
+                const c = CURRENCIES[code];
+                const cardLabel = lang === 'ru' ? c.label : c.labelEn;
+                const card = document.createElement('div');
+                card.id = `card-${code}`;
+                card.className = 'vnds-card p-5 rounded-2xl flex justify-between items-center transition-all';
+                card.innerHTML = `
+                    <div>
+                        <span class="block text-xs opacity-50 uppercase font-medium">${cardLabel}</span>
+                        <span id="res-${code}" class="text-2xl font-bold ${c.color}">0</span>
+                    </div>
+                    <span class="text-4xl opacity-90">${c.flag}</span>
+                `;
+                resultsEl.appendChild(card);
+            });
+        }
+
+        function convert() {
+            if (document.getElementById('converter-screen').classList.contains('hidden')) return;
+            const amount = parseFloat(getRawValue()) || 0;
+            DISPLAY_ORDER.forEach(code => {
+                const el = document.getElementById(`res-${code}`);
+                const card = document.getElementById(`card-${code}`);
+                
+                if (el && card) {
+                    let resultValue;
+                    if (code === baseCurrency) {
+                        resultValue = amount;
+                        card.style.borderColor = "var(--tg-theme-button-color, #3b82f6)";
+                        card.style.background = "rgba(59, 130, 246, 0.05)";
+                    } else {
+                        resultValue = amount * (rates[code] || 0);
+                        card.style.borderColor = "var(--border-color)";
+                        card.style.background = "var(--container-bg)";
+                    }
+                    el.textContent = formatNumber(resultValue, code === 'VND' ? 0 : 2);
+                }
+            });
+        }
+
+        function switchCurrency(code) {
+            if (code === baseCurrency) return;
+            baseCurrency = code;
+            
+            DISPLAY_ORDER.forEach(c => {
+                const btn = document.getElementById(`btn-${c}`);
+                if (btn) btn.classList.toggle('active', c === code);
+            });
+
+            const curLabel = lang === 'ru' ? CURRENCIES[code].label : CURRENCIES[code].labelEn;
+            document.getElementById('inputLabel').textContent = lang === 'ru' ? `Сумма (${curLabel})` : `Amount (${curLabel})`;
+            fetchRates(code);
+        }
+
+        function addZeros(zeros) {
+            let current = getRawValue();
+            if (current === '' || current === '0') return;
+            amountInput.value = formatNumber(parseFloat(current + zeros));
+            convert();
+        }
+
+        function clearAll() {
+            amountInput.value = '';
+            convert();
+        }
+
+        amountInput.addEventListener('input', formatAmountInput);
+        window.addEventListener('hashchange', routeScreens);
+
+        // СТАРТ ПРИЛОЖЕНИЯ
         initTheme();
-        fetchBanaStatus();
+        routeScreens();
+        
+        if (tg) {
+            tg.onEvent('themeChanged', function() {
+                initTheme();
+                convert();
+            });
+        }
     </script>
 </body>
 </html>
