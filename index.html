@@ -143,47 +143,33 @@
         .badge-rain { background: rgba(66, 153, 225, 0.15); color: #4299e1; }
         .badge-red { background: rgba(245, 101, 101, 0.15); color: #f56565; }
 
-        /* СТИЛИ ДЛЯ МИНИ ПРОГРЕСС-БАРА */
-        .progress-container {
-            width: 100%;
-            max-width: 140px;
-            margin: 0 auto 16px auto;
+        /* СТИЛИ ДЛЯ СПИННЕРА ЗАГРУЗКИ */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 8px;
         }
 
-        .progress-track {
-            width: 100%;
-            background-color: #e2e8f0;
-            height: 4px;
-            border-radius: 100px;
-            overflow: hidden;
+        .spinner-icon {
+            width: 24px;
+            height: 24px;
+            color: #3b82f6;
+            animation: spin 1.2s linear infinite;
         }
 
-        .dark-theme .progress-track {
-            background-color: #4a5568;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .progress-bar {
-            background-color: #3b82f6;
-            height: 100%;
-            width: 100%;
-            border-radius: 100px;
-            animation: pulseBar 1.5s infinite ease-in-out;
-        }
-
-        @keyframes pulseBar {
-            0% { opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { opacity: 0.3; }
-        }
-
-        .progress-text {
-            font-size: 9px;
+        .loading-text {
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--text-muted);
-            margin-top: 6px;
-            display: block;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .recommendation {
@@ -257,11 +243,11 @@
 
         <div id="status-badge" class="status-badge">--</div>
 
-        <div id="bana-progress" class="progress-container">
-            <div class="progress-track">
-                <div class="progress-bar"></div>
-            </div>
-            <span id="label-loading-data" class="progress-text">Updating...</span>
+        <div id="bana-progress" class="loading-container">
+            <svg class="spinner-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span id="label-loading-data" class="loading-text">Загружаем актуальную сводку...</span>
         </div>
 
         <div id="recommendation" class="recommendation">--</div>
@@ -304,7 +290,7 @@
                 windLabel: "Ветер",
                 tempLabel: "На горе",
                 updateLabel: "Обновлено:",
-                updatingBar: "Синхронизация...",
+                updatingBar: "Загружаем актуальную сводку...",
                 statuses: {
                     'GREEN': { badge: 'ОТЛИЧНО', text: 'Отличное время для поездки! Небо чистое, бери камеру.' },
                     'YELLOW': { badge: 'ВНИМАНИЕ', text: 'Плотная облачность. Вершина может быть в дымке, виды частично ограничены.' },
@@ -319,7 +305,7 @@
                 windLabel: "Wind",
                 tempLabel: "Mountain",
                 updateLabel: "Updated at:",
-                updatingBar: "Updating...",
+                updatingBar: "Loading current summary...",
                 statuses: {
                     'GREEN': { badge: 'CLEAR', text: 'Perfect time to visit! The sky is clear, grab your camera.' },
                     'YELLOW': { badge: 'WARNING', text: 'Cloudy. The peak might be hazy, views are partially limited.' },
@@ -380,7 +366,7 @@
             const iconImg = document.getElementById('weather-icon');
             const badge = document.getElementById('status-badge');
 
-            if (progressContainer) progressContainer.style.display = 'block';
+            if (progressContainer) progressContainer.style.display = 'flex';
             imgContainer.className = 'image-container';
 
             try {
