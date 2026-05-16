@@ -281,8 +281,13 @@
         };
 
         // Определяем язык пользователя (по умолчанию английский, если язык не 'ru')
-        const userLangCode = tg?.initDataUnsafe?.user?.language_code || 'en';
-        const lang = userLangCode.startsWith('ru') ? 'ru' : 'en';
+        // Пытаемся взять язык ТГ -> если пусто, берем язык браузера -> если пусто, ставим 'en'
+        const tgLang = tg?.initDataUnsafe?.user?.language_code;
+        const browserLang = window.navigator.language || window.navigator.userLanguage;
+        const userLangCode = tgLang || browserLang || 'en';
+
+        // Приводим к нижнему регистру и проверяем, есть ли там "ru"
+        const lang = userLangCode.toLowerCase().startsWith('ru') ? 'ru' : 'en';
         const t = translations[lang];
 
         // Применяем статические переводы при загрузке
