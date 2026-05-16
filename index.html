@@ -360,7 +360,6 @@
             }
         }
 
-        // Исправили баг — теперь переключение классов темы работает корректно
         function toggleTheme() {
             const btn = document.getElementById('theme-btn');
             if (document.body.classList.contains('dark-theme')) {
@@ -381,7 +380,6 @@
             const iconImg = document.getElementById('weather-icon');
             const badge = document.getElementById('status-badge');
 
-            // Показываем анимированную полоску
             if (progressContainer) progressContainer.style.display = 'block';
             imgContainer.className = 'image-container';
 
@@ -423,26 +421,37 @@
                 const windUnit = lang === 'ru' ? 'м/с' : 'm/s';
                 document.getElementById('wind-val').innerText = `${Math.round(data.wind)} ${windUnit}`;
                 
+                // --- УМНАЯ КОРРЕКЦИЯ ДЕФОЛТНОЙ ВИДИМОСТИ ОТ API ---
+                let currentVis = data.visibility || 10000;
+
+                if (data.status === 'RED_FOG' && currentVis > 500) {
+                    currentVis = 150; // В тумане режем до 150 метров
+                } else if (data.status === 'RAIN' && currentVis > 3000) {
+                    currentVis = 2400; // Во время сильного дождя ограничиваем до 2.4 км
+                } else if (data.status === 'YELLOW' && currentVis > 7000) {
+                    currentVis = 6500; // При плотной облачности/дымке опускаем до 6.5 км
+                }
+
                 const visKmUnit = lang === 'ru' ? 'км' : 'km';
                 const visMUnit = lang === 'ru' ? 'м' : 'm';
-                const visKm = data.visibility >= 1000 
-                    ? `${(data.visibility / 1000).toFixed(1)} ${visKmUnit}` 
-                    : `${data.visibility} ${visMUnit}`;
+                const visKm = currentVis >= 1000 
+                    ? `${(currentVis / 1000).toFixed(1)} ${visKmUnit}` 
+                    : `${currentVis} ${visMUnit}`;
                 
                 document.getElementById('vis-val').innerText = visKm;
+                // --- КОНЕЦ КОРРЕКЦИИ ---
 
                 const date = new Date(data.updatedAt);
                 const hours = String(date.getHours()).padStart(2, '0');
                 const minutes = String(date.getMinutes()).padStart(2, '0');
                 document.getElementById('update-time').innerText = `${hours}:${minutes}`;
 
-                // Прячем прогресс-бар, данные на месте!
                 if (progressContainer) progressContainer.style.display = 'none';
 
             } catch (err) {
                 console.error(err);
                 if (progressContainer) progressContainer.style.display = 'none';
-                contentBlock.style.style.display = 'none';
+                contentBlock.style.display = 'none';
                 document.getElementById('error').style.display = 'block';
             }
         }
