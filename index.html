@@ -328,6 +328,16 @@
             tg.ready();
         }
 
+        // --- РЕГИСТРАЦИЯ SERVICE WORKER (ДЛЯ УСТАНОВКИ PWA) ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js').then(function(registration) {
+            console.log('ServiceWorker успешно зарегистрирован!');
+        }).catch(function(err) {
+            console.log('Ошибка регистрации ServiceWorker: ', err);
+        });
+    });
+}
         // --- БЛОК ЛОКАЛИЗАЦИИ (СЛОВАРЬ) ---
         const translations = {
             ru: {
